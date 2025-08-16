@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -12,6 +12,10 @@ import { Badge } from "@/components/ui/badge"
 import { X, Save, Eye } from "lucide-react"
 import { createPost } from "@/lib/post-actions"
 import type { Category, Tag } from "@/lib/types"
+import MDEditor from '@uiw/react-md-editor'
+import { ImageUploader } from "@/components/posts/image-uploader"
+import { ImageGallery } from "@/components/posts/image-gallery"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 interface PostEditorProps {
   categories: Category[]
@@ -32,11 +36,10 @@ export function PostEditor({ categories, tags, userId, post }: PostEditorProps) 
   })
 
   const handleTagToggle = (tagId: string) => {
-    // @ts-ignore
       setFormData((prev) => ({
       ...prev,
       selectedTags: prev.selectedTags.includes(tagId)
-        ? prev.selectedTags.filter((id) => id !== tagId)
+        ? prev.selectedTags.filter((id: string) => id !== tagId)
         : [...prev.selectedTags, tagId],
     }))
   }
@@ -141,15 +144,88 @@ export function PostEditor({ categories, tags, userId, post }: PostEditorProps) 
         <CardHeader>
           <CardTitle>内容</CardTitle>
         </CardHeader>
-        <CardContent>
-          <Textarea
-            value={formData.content}
-            onChange={(e) => setFormData((prev) => ({ ...prev, content: e.target.value }))}
-            placeholder="开始写作..."
-            rows={20}
-            className="font-mono"
-          />
-        </CardContent>
+                  <CardContent>
+            <Tabs defaultValue="write" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="write">写作</TabsTrigger>
+                <TabsTrigger value="upload">上传图片</TabsTrigger>
+                <TabsTrigger value="gallery">图片库</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="write" className="space-y-4">
+                <div data-color-mode="light">
+                  <MDEditor
+                    value={formData.content}
+                    onChange={(value) => setFormData((prev) => ({ ...prev, content: value || '' }))}
+                    height={500}
+                    preview="edit"
+                  />
+                </div>
+              </TabsContent>
+              
+              <TabsContent value="upload" className="space-y-4">
+                <ImageUploader 
+                  onImageUploaded={(imageUrl) => {
+                    // 在光标位置插入Markdown图片语法
+                    const imageMarkdown = `![图片](${imageUrl})\n`
+                    
+                    // 获取编辑器实例，尝试在光标位置插入图片
+                    const textArea = document.querySelector('.w-md-editor-text-input') as HTMLTextAreaElement
+                    
+                    if (textArea) {
+                      const start = textArea.selectionStart
+                      const end = textArea.selectionEnd
+                      const text = formData.content || ''
+                      
+                      const newContent = text.substring(0, start) + imageMarkdown + text.substring(end)
+                      setFormData((prev) => ({ ...prev, content: newContent }))
+                      
+                      // 设置光标位置到插入的图片后面
+                      setTimeout(() => {
+                        textArea.focus()
+                        const newPosition = start + imageMarkdown.length
+                        textArea.setSelectionRange(newPosition, newPosition)
+                      }, 0)
+                    } else {
+                      // 如果无法获取编辑器实例，则追加到内容末尾
+                      setFormData((prev) => ({
+                        ...prev,
+                        content: prev.content ? prev.content + imageMarkdown : imageMarkdown
+                      }))
+                    }
+                    
+                    // 显示成功提示并切换到写作标签
+                    setTimeout(() => {
+                      const writeTab = document.querySelector('[value="write"]') as HTMLButtonElement
+                      if (writeTab) {
+                        writeTab.click()
+                      }
+                    }, 1000)
+                  }}
+                />
+              </TabsContent>
+              
+              <TabsContent value="gallery" className="space-y-4">
+                <ImageGallery 
+                  showSelectButton={true}
+                  onImageSelect={(imageUrl) => {
+                    // 插入选中的图片
+                    const imageMarkdown = `![图片](${imageUrl})\n`
+                    setFormData((prev) => ({
+                      ...prev,
+                      content: prev.content ? prev.content + imageMarkdown : imageMarkdown
+                    }))
+                    
+                    // 切换到写作标签
+                    const writeTab = document.querySelector('[value="write"]') as HTMLButtonElement
+                    if (writeTab) {
+                      writeTab.click()
+                    }
+                  }}
+                />
+              </TabsContent>
+            </Tabs>
+          </CardContent>
       </Card>
 
       <div className="flex gap-4">

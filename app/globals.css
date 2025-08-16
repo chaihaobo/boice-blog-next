@@ -1,6 +1,111 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 
+/* Markdown Editor Styles */
+.w-md-editor {
+  --md-editor-box-shadow: none !important;
+  --md-editor-border-radius: 0.5rem !important;
+  --md-editor-toolbar-height: 2.5rem !important;
+  --md-editor-toolbar-color: var(--foreground) !important;
+  --md-editor-toolbar-hover-color: var(--primary) !important;
+  --md-editor-toolbar-active-color: var(--primary) !important;
+  --md-editor-toolbar-bg: var(--card) !important;
+  --md-editor-bg: var(--card) !important;
+  --md-editor-border-color: var(--border) !important;
+  --md-editor-color: var(--foreground) !important;
+}
+
+.w-md-editor-text-pre > code,
+.w-md-editor-text-input {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace !important;
+  font-size: 0.9rem !important;
+  line-height: 1.5 !important;
+}
+
+.wmde-markdown {
+  background-color: transparent !important;
+  font-family: inherit !important;
+}
+
+.wmde-markdown h1,
+.wmde-markdown h2,
+.wmde-markdown h3,
+.wmde-markdown h4,
+.wmde-markdown h5,
+.wmde-markdown h6 {
+  margin-top: 1.5em !important;
+  margin-bottom: 0.75em !important;
+  font-weight: 700 !important;
+  line-height: 1.2 !important;
+}
+
+.wmde-markdown h1 {
+  font-size: 2.25em !important;
+}
+
+.wmde-markdown h2 {
+  font-size: 1.875em !important;
+}
+
+.wmde-markdown h3 {
+  font-size: 1.5em !important;
+}
+
+.wmde-markdown p,
+.wmde-markdown ul,
+.wmde-markdown ol {
+  margin-bottom: 1em !important;
+  line-height: 1.7 !important;
+}
+
+.wmde-markdown code {
+  background-color: var(--muted) !important;
+  color: var(--foreground) !important;
+  padding: 0.2em 0.4em !important;
+  border-radius: 0.25em !important;
+  font-size: 0.9em !important;
+}
+
+.wmde-markdown pre {
+  background-color: var(--muted) !important;
+  padding: 1em !important;
+  border-radius: 0.5em !important;
+  overflow-x: auto !important;
+  margin: 1em 0 !important;
+}
+
+.wmde-markdown blockquote {
+  border-left: 4px solid var(--border) !important;
+  padding-left: 1em !important;
+  color: var(--muted-foreground) !important;
+  font-style: italic !important;
+  margin: 1em 0 !important;
+}
+
+.wmde-markdown img {
+  max-width: 100% !important;
+  height: auto !important;
+  border-radius: 0.5em !important;
+  margin: 1em 0 !important;
+}
+
+.wmde-markdown table {
+  width: 100% !important;
+  border-collapse: collapse !important;
+  margin: 1em 0 !important;
+}
+
+.wmde-markdown th,
+.wmde-markdown td {
+  border: 1px solid var(--border) !important;
+  padding: 0.5em !important;
+}
+
+.wmde-markdown th {
+  background-color: var(--muted) !important;
+  font-weight: 600 !important;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 :root {

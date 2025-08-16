@@ -12,15 +12,19 @@ interface RecentPostsProps {
 export async function RecentPosts({ userId }: RecentPostsProps) {
   const supabase =  await createClient()
 
-  const { data: posts } = await supabase
+  const { data: posts, error } = await supabase
     .from("posts")
     .select(`
       *,
-      category:categories(*)
+      category:categories!fk_posts_category(*)
     `)
     .eq("author_id", userId)
     .order("updated_at", { ascending: false })
     .limit(5)
+
+  if (error) {
+    console.error('Error fetching recent posts:', error)
+  }
 
   return (
     <Card>

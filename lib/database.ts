@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server"
-import type { Post, Category, Tag, Comment } from "@/lib/types"
+import type { Post, Category, Tag, Comment, SystemSetting } from "@/lib/types"
 
 export async function getPosts({
   status = "published",
@@ -278,3 +278,28 @@ export async function createPost(data: {
 
   return post
 }
+
+// 获取系统设置
+export async function getSystemSettings(keys?: string[]): Promise<SystemSetting[]> {
+  const supabase = await createClient()
+  
+  let query = supabase
+    .from("system_settings")
+    .select("*")
+    .order("key")
+  
+  if (keys && keys.length > 0) {
+    query = query.in("key", keys)
+  }
+  
+  const { data, error } = await query
+  
+  if (error) {
+    console.error("Error fetching system settings:", error)
+    return []
+  }
+  
+  return data || []
+}
+
+// 更新系统设置

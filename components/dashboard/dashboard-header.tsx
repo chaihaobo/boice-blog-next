@@ -1,7 +1,7 @@
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { UserNav } from "@/components/auth/user-nav"
-import { PenTool, Home } from "lucide-react"
+import { PenTool, Home, MessageSquare } from "lucide-react"
 
 interface DashboardHeaderProps {
   user: {
@@ -26,6 +26,9 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
               </Link>
               <Link href="/dashboard/posts" className="text-sm font-medium transition-colors hover:text-primary">
                 文章管理
+              </Link>
+              <Link href="/dashboard/comments" className="text-sm font-medium transition-colors hover:text-primary">
+                评论管理
               </Link>
             </nav>
           </div>

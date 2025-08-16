@@ -86,7 +86,7 @@ export function Footer() {
         </div>
 
         <div className="border-t mt-8 pt-8 text-center text-sm text-muted-foreground">
-          <p>&copy; 2024 Boice Blog. {dict.footer.allRightsReserved}</p>
+          <p>&copy; 2025 Boice Blog. {dict.footer.allRightsReserved}</p>
         </div>
       </div>
     </footer>

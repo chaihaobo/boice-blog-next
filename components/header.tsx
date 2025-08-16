@@ -47,8 +47,6 @@ export function Header({ user, profile }: HeaderProps) {
   const navigation = [
     { name: dict.common.home, href: "/" },
     { name: dict.common.posts, href: "/posts" },
-    { name: dict.common.categories, href: "/categories" },
-    { name: dict.common.tags, href: "/tags" },
     { name: dict.common.about, href: "/about" },
   ]
 

@@ -1,5 +1,7 @@
 "use client"
 
+import MDEditor from '@uiw/react-md-editor'
+
 interface PostContentProps {
   content: string
 }
@@ -7,7 +9,9 @@ interface PostContentProps {
 export function PostContent({ content }: PostContentProps) {
   return (
     <div className="prose prose-lg dark:prose-invert max-w-none">
-      <div dangerouslySetInnerHTML={{ __html: content }} />
+      <div data-color-mode="light">
+        <MDEditor.Markdown source={content} />
+      </div>
     </div>
   )
 }

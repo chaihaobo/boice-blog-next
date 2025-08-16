@@ -56,3 +56,12 @@ export interface Comment {
   author?: Profile
   replies?: Comment[]
 }
+
+export interface SystemSetting {
+  id: string
+  key: string
+  value: string
+  description?: string
+  created_at: string
+  updated_at: string
+}
