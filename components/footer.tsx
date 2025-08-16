@@ -2,6 +2,7 @@
 
 import Link from "next/link"
 import { Github, Mail, Rss } from "lucide-react"
+import { Logo } from "@/components/logo"
 import { useI18n } from "@/lib/i18n/context"
 import { getDictionary } from "@/lib/i18n/dictionaries"
 import { useEffect, useState } from "react"
@@ -22,7 +23,7 @@ export function Footer() {
       <div className="container mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="space-y-4">
-            <h3 className="text-lg font-semibold">Boice Blog</h3>
+            <Logo size="sm" />
             <p className="text-sm text-muted-foreground">{dict.footer.blogDescription}</p>
           </div>
 

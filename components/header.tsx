@@ -8,6 +8,7 @@ import { Menu, Github } from "lucide-react"
 import { UserNav } from "@/components/auth/user-nav"
 import { LanguageSwitcher } from "@/components/language-switcher"
 import { ThemeToggle } from "@/components/theme-toggle"
+import { Logo } from "@/components/logo"
 import { useI18n } from "@/lib/i18n/context"
 import { getDictionary } from "@/lib/i18n/dictionaries"
 import { useEffect, useState as useStateHook } from "react"
@@ -54,9 +55,7 @@ export function Header({ user, profile }: HeaderProps) {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-primary">Boice</span>
-          </Link>
+          <Logo />
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center space-x-6">
