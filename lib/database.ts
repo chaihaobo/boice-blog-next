@@ -20,12 +20,7 @@ export async function getPosts({
 
   let query = supabase
     .from("posts")
-    .select(`
-      *,
-      author:profiles(*),
-      category:categories(*),
-      tags:post_tags(tag:tags(*))
-    `)
+    .select("*")
     .eq("status", status)
     .order("published_at", { ascending: false })
     .range(offset, offset + limit - 1)
@@ -39,36 +34,94 @@ export async function getPosts({
   }
 
   if (tagId) {
-    query = query.in("id", supabase.from("post_tags").select("post_id").eq("tag_id", tagId))
+    // Use a subquery for tag filtering
+    const { data: postIds } = await supabase.from("post_tags").select("post_id").eq("tag_id", tagId)
+
+    if (postIds && postIds.length > 0) {
+      const ids = postIds.map((item) => item.post_id)
+      query = query.in("id", ids)
+    } else {
+      // No posts found with this tag
+      return []
+    }
   }
 
-  const { data, error } = await query
+  const { data: posts, error } = await query
 
   if (error) {
     console.error("Error fetching posts:", error)
     return []
   }
 
-  return data as Post[]
+  if (!posts || posts.length === 0) {
+    return []
+  }
+
+  const postsWithRelations = await Promise.all(
+    posts.map(async (post) => {
+      const [authorData, categoryData, tagsData] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", post.author_id).single(),
+        post.category_id
+          ? supabase.from("categories").select("*").eq("id", post.category_id).single()
+          : Promise.resolve({ data: null }),
+        supabase
+          .from("post_tags")
+          .select(`
+            tags (
+              id,
+              name,
+              slug,
+              color
+            )
+          `)
+          .eq("post_id", post.id),
+      ])
+
+      return {
+        ...post,
+        profiles: authorData.data,
+        categories: categoryData.data,
+        post_tags: tagsData.data || [],
+      }
+    }),
+  )
+
+  return postsWithRelations as Post[]
 }
 
 export async function getPostBySlug(slug: string) {
   const supabase = createClient()
 
-  const { data, error } = await supabase
-    .from("posts")
-    .select(`
-      *,
-      author:profiles(*),
-      category:categories(*),
-      tags:post_tags(tag:tags(*))
-    `)
-    .eq("slug", slug)
-    .single()
+  const { data: postData, error: postError } = await supabase.from("posts").select("*").eq("slug", slug).single()
 
-  if (error) {
-    console.error("Error fetching post:", error)
+  if (postError || !postData) {
+    console.error("Error fetching post:", postError)
     return null
+  }
+
+  const [authorData, categoryData, tagsData] = await Promise.all([
+    supabase.from("profiles").select("*").eq("id", postData.author_id).single(),
+    postData.category_id
+      ? supabase.from("categories").select("*").eq("id", postData.category_id).single()
+      : Promise.resolve({ data: null }),
+    supabase
+      .from("post_tags")
+      .select(`
+        tags (
+          id,
+          name,
+          slug,
+          color
+        )
+      `)
+      .eq("post_id", postData.id),
+  ])
+
+  const data = {
+    ...postData,
+    profiles: authorData.data,
+    categories: categoryData.data,
+    post_tags: tagsData.data || [],
   }
 
   return data as Post
@@ -110,34 +163,54 @@ export async function getComments(postSlug: string) {
     return []
   }
 
-  const { data, error } = await supabase
+  const { data: commentsData, error: commentsError } = await supabase
     .from("comments")
-    .select(`
-      *,
-      author:profiles(*)
-    `)
+    .select("*")
     .eq("post_id", post.id)
     .eq("status", "approved")
     .is("parent_id", null)
     .order("created_at", { ascending: true })
 
-  if (error) {
-    console.error("Error fetching comments:", error)
+  if (commentsError) {
+    console.error("Error fetching comments:", commentsError)
     return []
   }
 
+  if (!commentsData || commentsData.length === 0) {
+    return []
+  }
+
+  const commentsWithAuthors = await Promise.all(
+    commentsData.map(async (comment) => {
+      const { data: authorData } = await supabase.from("profiles").select("*").eq("id", comment.author_id).single()
+
+      return {
+        ...comment,
+        profiles: authorData,
+      }
+    }),
+  )
+
   // Get replies for each comment
   const commentsWithReplies = await Promise.all(
-    data.map(async (comment) => {
-      const { data: replies } = await supabase
+    commentsWithAuthors.map(async (comment) => {
+      const { data: repliesData } = await supabase
         .from("comments")
-        .select(`
-          *,
-          author:profiles(*)
-        `)
+        .select("*")
         .eq("parent_id", comment.id)
         .eq("status", "approved")
         .order("created_at", { ascending: true })
+
+      const replies = await Promise.all(
+        (repliesData || []).map(async (reply) => {
+          const { data: authorData } = await supabase.from("profiles").select("*").eq("id", reply.author_id).single()
+
+          return {
+            ...reply,
+            profiles: authorData,
+          }
+        }),
+      )
 
       return {
         ...comment,
