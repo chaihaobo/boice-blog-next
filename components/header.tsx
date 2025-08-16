@@ -13,12 +13,10 @@ import { useI18n } from "@/lib/i18n/context"
 import { getDictionary } from "@/lib/i18n/dictionaries"
 import { useEffect, useState as useStateHook } from "react"
 import type { Dictionary } from "@/lib/i18n/dictionaries"
+import {User} from "@supabase/auth-js";
 
 interface HeaderProps {
-  user?: {
-    id: string
-    email?: string
-  }
+  user :User|null
   profile?: {
     id: string
     username?: string

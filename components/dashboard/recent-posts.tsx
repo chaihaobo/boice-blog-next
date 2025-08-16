@@ -10,7 +10,7 @@ interface RecentPostsProps {
 }
 
 export async function RecentPosts({ userId }: RecentPostsProps) {
-  const supabase = createClient()
+  const supabase =  await createClient()
 
   const { data: posts } = await supabase
     .from("posts")

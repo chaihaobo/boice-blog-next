@@ -4,7 +4,7 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { CommentManagement } from "@/components/dashboard/comment-management"
 
 export default async function CommentsPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

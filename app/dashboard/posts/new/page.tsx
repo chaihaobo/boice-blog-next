@@ -5,7 +5,7 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { PostEditor } from "@/components/posts/post-editor"
 
 export default async function NewPostPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

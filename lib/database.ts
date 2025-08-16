@@ -16,7 +16,7 @@ export async function getPosts({
   tagId?: string
   authorId?: string
 } = {}) {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   let query = supabase
     .from("posts")
@@ -90,7 +90,7 @@ export async function getPosts({
 }
 
 export async function getPostBySlug(slug: string) {
-  const supabase = createClient()
+  const supabase = await  createClient()
 
   const { data: postData, error: postError } = await supabase.from("posts").select("*").eq("slug", slug).single()
 
@@ -128,7 +128,7 @@ export async function getPostBySlug(slug: string) {
 }
 
 export async function getCategories() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase.from("categories").select("*").order("name")
 
@@ -141,7 +141,7 @@ export async function getCategories() {
 }
 
 export async function getTags() {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   const { data, error } = await supabase.from("tags").select("*").order("name")
 
@@ -154,7 +154,7 @@ export async function getTags() {
 }
 
 export async function getComments(postSlug: string) {
-  const supabase = createClient()
+  const supabase =  await createClient()
 
   // First get the post ID from slug
   const { data: post } = await supabase.from("posts").select("id").eq("slug", postSlug).single()
@@ -231,7 +231,7 @@ export async function createPost(data: {
   status?: "draft" | "published"
   authorId: string
 }) {
-  const supabase = createClient()
+  const supabase = await createClient()
 
   // Generate slug from title
   const slug = data.title

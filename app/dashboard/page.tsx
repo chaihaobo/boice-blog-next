@@ -6,7 +6,7 @@ import { RecentPosts } from "@/components/dashboard/recent-posts"
 import { QuickActions } from "@/components/dashboard/quick-actions"
 
 export default async function DashboardPage() {
-  const supabase = createClient()
+  const supabase = await createClient()
   const {
     data: { user },
   } = await supabase.auth.getUser()

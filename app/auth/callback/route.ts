@@ -1,5 +1,6 @@
-import { createClient } from "@/lib/supabase/server"
+import { createServerClient } from "@supabase/ssr"
 import { NextResponse } from "next/server"
+import { cookies } from "next/headers"
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
@@ -9,7 +10,25 @@ export async function GET(request: Request) {
   console.log("[v0] Auth callback received, code:", !!code)
 
   if (code) {
-    const supabase = createClient()
+    const cookieStore = await cookies()
+    let response = NextResponse.redirect(origin)
+    
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          getAll() {
+            return cookieStore.getAll()
+          },
+          setAll(cookiesToSet) {
+            cookiesToSet.forEach(({ name, value, options }) => {
+              response.cookies.set(name, value, options)
+            })
+          },
+        },
+      }
+    )
 
     try {
       const { data, error } = await supabase.auth.exchangeCodeForSession(code)
@@ -61,9 +80,7 @@ export async function GET(request: Request) {
         }
       }
 
-      // Redirect to home page with success
-      console.log("[v0] Redirecting to home page")
-      return NextResponse.redirect(`${origin}/?auth=success`)
+      return response
     } catch (error) {
       console.error("[v0] Unexpected auth callback error:", error)
       return NextResponse.redirect(`${origin}/auth/login?error=unexpected_error`)
