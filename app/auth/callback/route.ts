@@ -1,46 +1,76 @@
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs"
-import { cookies } from "next/headers"
+import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
 export async function GET(request: Request) {
   const requestUrl = new URL(request.url)
   const code = requestUrl.searchParams.get("code")
+  const origin = requestUrl.origin
+
+  console.log("[v0] Auth callback received, code:", !!code)
 
   if (code) {
-    const cookieStore = cookies()
-    const supabase = createRouteHandlerClient({ cookies: () => cookieStore })
+    const supabase = createClient()
 
     try {
       const { data, error } = await supabase.auth.exchangeCodeForSession(code)
 
+      console.log("[v0] Code exchange result:", {
+        hasUser: !!data.user,
+        hasSession: !!data.session,
+        error: error?.message,
+      })
+
       if (error) {
-        console.error("Auth callback error:", error)
-        return NextResponse.redirect(`${requestUrl.origin}/auth/login?error=callback_error`)
+        console.error("[v0] Auth callback error:", error)
+        return NextResponse.redirect(`${origin}/auth/login?error=callback_error`)
       }
 
       // If user signed up with OAuth, create profile if it doesn't exist
       if (data.user) {
+        console.log("[v0] User authenticated:", data.user.id)
+
         const { data: existingProfile } = await supabase.from("profiles").select("id").eq("id", data.user.id).single()
 
+        console.log("[v0] Existing profile:", !!existingProfile)
+
         if (!existingProfile) {
-          const { error: profileError } = await supabase.from("profiles").insert({
+          const profileData = {
             id: data.user.id,
-            full_name: data.user.user_metadata?.full_name || data.user.user_metadata?.name || "",
-            username: data.user.user_metadata?.user_name || data.user.email?.split("@")[0] || "",
+            full_name:
+              data.user.user_metadata?.full_name ||
+              data.user.user_metadata?.name ||
+              data.user.user_metadata?.user_name ||
+              "",
+            username:
+              data.user.user_metadata?.user_name ||
+              data.user.user_metadata?.preferred_username ||
+              data.user.email?.split("@")[0] ||
+              "",
             avatar_url: data.user.user_metadata?.avatar_url || "",
-          })
+          }
+
+          console.log("[v0] Creating profile:", profileData)
+
+          const { error: profileError } = await supabase.from("profiles").insert(profileData)
 
           if (profileError) {
-            console.error("Profile creation error:", profileError)
+            console.error("[v0] Profile creation error:", profileError)
+          } else {
+            console.log("[v0] Profile created successfully")
           }
         }
       }
+
+      // Redirect to home page with success
+      console.log("[v0] Redirecting to home page")
+      return NextResponse.redirect(`${origin}/?auth=success`)
     } catch (error) {
-      console.error("Unexpected auth callback error:", error)
-      return NextResponse.redirect(`${requestUrl.origin}/auth/login?error=unexpected_error`)
+      console.error("[v0] Unexpected auth callback error:", error)
+      return NextResponse.redirect(`${origin}/auth/login?error=unexpected_error`)
     }
   }
 
-  // Redirect to home page after successful authentication
-  return NextResponse.redirect(`${requestUrl.origin}/`)
+  // No code provided, redirect to login
+  console.log("[v0] No code provided, redirecting to login")
+  return NextResponse.redirect(`${origin}/auth/login?error=no_code`)
 }

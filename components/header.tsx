@@ -37,6 +37,10 @@ export function Header({ user, profile }: HeaderProps) {
   const [dict, setDict] = useStateHook<Dictionary | null>(null)
 
   useEffect(() => {
+    console.log("[v0] Header user state:", { hasUser: !!user, hasProfile: !!profile })
+  }, [user, profile])
+
+  useEffect(() => {
     getDictionary(locale).then(setDict)
   }, [locale])
 
