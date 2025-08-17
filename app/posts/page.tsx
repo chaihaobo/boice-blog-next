@@ -7,6 +7,7 @@ import { PostFilters } from "@/components/posts/post-filters"
 import { Button } from "@/components/ui/button"
 import { Suspense } from "react"
 import { PostCardSkeleton } from "@/components/posts/post-card-skeleton"
+import { getDictionary } from "@/lib/i18n/dictionaries"
 
 interface PostsPageProps {
   searchParams: {
@@ -16,7 +17,13 @@ interface PostsPageProps {
   }
 }
 
-export default async function PostsPage({ searchParams }: PostsPageProps) {
+export default async function PostsPage({ 
+  searchParams,
+  params: { locale = 'zh' }
+}: PostsPageProps & {
+  params: { locale?: 'zh' | 'en' }
+}) {
+  const dict = await getDictionary(locale)
   const supabase = await createClient()
   const {
     data: { user },
@@ -58,8 +65,8 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
           <div className="flex-1">
             <div className="flex items-center justify-between mb-8">
               <div>
-                <h1 className="text-3xl font-bold">所有文章</h1>
-                <p className="text-muted-foreground mt-2">探索技术见解和个人思考</p>
+                <h1 className="text-3xl font-bold">{dict?.posts?.allPosts}</h1>
+                <p className="text-muted-foreground mt-2">{dict?.posts?.exploreInsights}</p>
               </div>
             </div>
 
@@ -73,7 +80,7 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
 
             {posts.length === 0 && (
               <div className="text-center py-12">
-                <p className="text-muted-foreground">暂无文章</p>
+                <p className="text-muted-foreground">{dict?.posts?.noPosts}</p>
               </div>
             )}
 
@@ -81,7 +88,7 @@ export default async function PostsPage({ searchParams }: PostsPageProps) {
             {posts.length === limit && (
               <div className="flex justify-center mt-12">
                 <Button variant="outline" asChild>
-                  <a href={`/posts?page=${page + 1}`}>加载更多</a>
+                  <a href={`/posts?page=${page + 1}`}>{dict?.posts?.loadMore}</a>
                 </Button>
               </div>
             )}

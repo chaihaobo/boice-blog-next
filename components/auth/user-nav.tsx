@@ -14,6 +14,9 @@ import { User, Settings, LogOut, PenTool } from "lucide-react"
 import Link from "next/link"
 import { signOut } from "@/lib/actions"
 import type { Profile } from "@/lib/types"
+import { useI18n } from "@/lib/i18n/context"
+import { getDictionary } from "@/lib/i18n/dictionaries"
+import { useEffect, useState } from "react"
 
 interface UserNavProps {
   user: {
@@ -24,7 +27,16 @@ interface UserNavProps {
 }
 
 export function UserNav({ user, profile }: UserNavProps) {
-  const displayName = profile?.full_name || profile?.username || user.email?.split("@")[0] || "用户"
+  const { locale } = useI18n()
+  const [dict, setDict] = useState<any>(null)
+
+  useEffect(() => {
+    getDictionary(locale).then(setDict)
+  }, [locale])
+
+  if (!dict) return null
+
+  const displayName = profile?.full_name || profile?.username || user.email?.split("@")[0] || dict.userNav.user
   const avatarUrl = profile?.avatar_url
 
   return (
@@ -48,19 +60,19 @@ export function UserNav({ user, profile }: UserNavProps) {
         <DropdownMenuItem asChild>
           <Link href="/dashboard">
             <PenTool className="mr-2 h-4 w-4" />
-            <span>写文章</span>
+            <span>{dict.userNav.writePost}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/profile">
             <User className="mr-2 h-4 w-4" />
-            <span>个人资料</span>
+            <span>{dict.userNav.profile}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/settings">
             <Settings className="mr-2 h-4 w-4" />
-            <span>设置</span>
+            <span>{dict.userNav.settings}</span>
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
@@ -68,7 +80,7 @@ export function UserNav({ user, profile }: UserNavProps) {
           <form action={signOut} className="w-full">
             <button type="submit" className="flex w-full items-center">
               <LogOut className="mr-2 h-4 w-4" />
-              <span>退出登录</span>
+              <span>{dict.userNav.logout}</span>
             </button>
           </form>
         </DropdownMenuItem>

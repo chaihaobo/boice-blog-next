@@ -33,20 +33,17 @@ export function ThemeToggle() {
 
   const themes = [
     {
-      name: "浅色",
-      nameEn: "Light",
+      name: dict.theme.light,
       value: "light",
       icon: Sun,
     },
     {
-      name: "深色",
-      nameEn: "Dark",
+      name: dict.theme.dark,
       value: "dark",
       icon: Moon,
     },
     {
-      name: "系统",
-      nameEn: "System",
+      name: dict.theme.system,
       value: "system",
       icon: Monitor,
     },
@@ -75,7 +72,7 @@ export function ThemeToggle() {
               className={isActive ? "bg-accent" : ""}
             >
               <Icon className="mr-2 h-4 w-4" />
-              {locale === "zh" ? themeOption.name : themeOption.nameEn}
+              {themeOption.name}
             </DropdownMenuItem>
           )
         })}

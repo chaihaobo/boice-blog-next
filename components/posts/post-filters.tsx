@@ -5,6 +5,9 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { useSearchParams } from "next/navigation"
+import { useState, useEffect } from "react"
+import { useI18n } from "@/lib/i18n/context"
+import { getDictionary } from "@/lib/i18n/dictionaries"
 import type { Category, Tag } from "@/lib/types"
 
 interface PostFiltersProps {
@@ -16,17 +19,25 @@ export function PostFilters({ categories, tags }: PostFiltersProps) {
   const searchParams = useSearchParams()
   const selectedCategory = searchParams.get("category")
   const selectedTag = searchParams.get("tag")
+  const [dict, setDict] = useState<any>(null)
+  const { locale } = useI18n()
+
+  useEffect(() => {
+    getDictionary(locale).then(setDict)
+  }, [locale])
+
+  if (!dict) return null
 
   return (
     <div className="space-y-6">
       {/* Categories */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">分类</CardTitle>
+          <CardTitle className="text-lg">{dict.posts.categories}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
           <Button variant={!selectedCategory ? "default" : "ghost"} size="sm" asChild className="w-full justify-start">
-            <Link href="/posts">全部</Link>
+            <Link href="/posts">{dict.posts.all}</Link>
           </Button>
           {categories.map((category) => (
             <Button
@@ -48,7 +59,7 @@ export function PostFilters({ categories, tags }: PostFiltersProps) {
       {/* Tags */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">标签</CardTitle>
+          <CardTitle className="text-lg">{dict.posts.tags}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">

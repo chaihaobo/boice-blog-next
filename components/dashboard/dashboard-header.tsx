@@ -2,6 +2,8 @@ import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { UserNav } from "@/components/auth/user-nav"
 import { PenTool, Home, MessageSquare } from "lucide-react"
+import { getDictionary } from "@/lib/i18n/dictionaries"
+import type { Locale } from "@/lib/i18n/config"
 
 interface DashboardHeaderProps {
   user: {
@@ -9,9 +11,11 @@ interface DashboardHeaderProps {
     email?: string
   }
   profile?: any
+  locale: Locale
 }
 
-export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
+export async function DashboardHeader({ user, profile, locale }: DashboardHeaderProps) {
+  const dict = await getDictionary(locale)
   return (
     <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container mx-auto px-4">
@@ -22,13 +26,13 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
             </Link>
             <nav className="hidden md:flex items-center space-x-6">
               <Link href="/dashboard" className="text-sm font-medium transition-colors hover:text-primary">
-                仪表板
+                {dict.dashboard.dashboard}
               </Link>
               <Link href="/dashboard/posts" className="text-sm font-medium transition-colors hover:text-primary">
-                文章管理
+                {dict.dashboard.postManagement}
               </Link>
               <Link href="/dashboard/comments" className="text-sm font-medium transition-colors hover:text-primary">
-                评论管理
+                {dict.dashboard.commentManagement}
               </Link>
             </nav>
           </div>
@@ -37,13 +41,13 @@ export function DashboardHeader({ user, profile }: DashboardHeaderProps) {
             <Button variant="ghost" size="icon" asChild>
               <Link href="/">
                 <Home className="h-5 w-5" />
-                <span className="sr-only">返回首页</span>
+                <span className="sr-only">{dict.navigation.backToHome}</span>
               </Link>
             </Button>
             <Button asChild>
               <Link href="/dashboard/posts/new">
                 <PenTool className="h-4 w-4 mr-2" />
-                写文章
+                {dict.dashboard.writeNewPost}
               </Link>
             </Button>
             <UserNav user={user} profile={profile} />

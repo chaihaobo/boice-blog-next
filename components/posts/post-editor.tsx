@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -16,6 +16,8 @@ import MDEditor from '@uiw/react-md-editor'
 import { ImageUploader } from "@/components/posts/image-uploader"
 import { ImageGallery } from "@/components/posts/image-gallery"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { useI18n } from "@/lib/i18n/context"
+import { getDictionary } from "@/lib/i18n/dictionaries"
 
 interface PostEditorProps {
   categories: Category[]
@@ -26,6 +28,8 @@ interface PostEditorProps {
 
 export function PostEditor({ categories, tags, userId, post }: PostEditorProps) {
   const router = useRouter()
+  const { locale } = useI18n()
+  const [dict, setDict] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [formData, setFormData] = useState({
     title: post?.title || "",
@@ -34,6 +38,12 @@ export function PostEditor({ categories, tags, userId, post }: PostEditorProps) 
     categoryId: post?.category_id || "",
     selectedTags: post?.tags?.map((t: any) => t.tag.id) || [],
   })
+
+  useEffect(() => {
+    getDictionary(locale).then(setDict)
+  }, [locale])
+
+  if (!dict) return null
 
   const handleTagToggle = (tagId: string) => {
       setFormData((prev) => ({
@@ -46,7 +56,7 @@ export function PostEditor({ categories, tags, userId, post }: PostEditorProps) 
 
   const handleSave = async (status: "draft" | "published") => {
     if (!formData.title.trim() || !formData.content.trim()) {
-      alert("标题和内容不能为空")
+      alert(dict.validation.titleAndContentRequired)
       return
     }
 
@@ -65,7 +75,7 @@ export function PostEditor({ categories, tags, userId, post }: PostEditorProps) 
       router.push("/dashboard")
     } catch (error) {
       console.error("Error saving post:", error)
-      alert("保存失败，请重试")
+      alert(dict.editor.saveError)
     } finally {
       setIsLoading(false)
     }
@@ -75,38 +85,38 @@ export function PostEditor({ categories, tags, userId, post }: PostEditorProps) 
     <div className="space-y-6">
       <Card>
         <CardHeader>
-          <CardTitle>文章信息</CardTitle>
+          <CardTitle>{dict.editor.postInfo}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div>
-            <Label htmlFor="title">标题</Label>
+            <Label htmlFor="title">{dict.editor.title}</Label>
             <Input
               id="title"
               value={formData.title}
               onChange={(e) => setFormData((prev) => ({ ...prev, title: e.target.value }))}
-              placeholder="输入文章标题..."
+              placeholder={dict.editor.titlePlaceholder}
             />
           </div>
 
           <div>
-            <Label htmlFor="excerpt">摘要</Label>
+            <Label htmlFor="excerpt">{dict.editor.excerpt}</Label>
             <Textarea
               id="excerpt"
               value={formData.excerpt}
               onChange={(e) => setFormData((prev) => ({ ...prev, excerpt: e.target.value }))}
-              placeholder="输入文章摘要..."
+              placeholder={dict.editor.excerptPlaceholder}
               rows={3}
             />
           </div>
 
           <div>
-            <Label htmlFor="category">分类</Label>
+            <Label htmlFor="category">{dict.editor.category}</Label>
             <Select
               value={formData.categoryId}
               onValueChange={(value) => setFormData((prev) => ({ ...prev, categoryId: value }))}
             >
               <SelectTrigger>
-                <SelectValue placeholder="选择分类" />
+                <SelectValue placeholder={dict.editor.selectCategory} />
               </SelectTrigger>
               <SelectContent>
                 {categories.map((category) => (
@@ -122,7 +132,7 @@ export function PostEditor({ categories, tags, userId, post }: PostEditorProps) 
           </div>
 
           <div>
-            <Label>标签</Label>
+            <Label>{dict.editor.tags}</Label>
             <div className="flex flex-wrap gap-2 mt-2">
               {tags.map((tag) => (
                 <Badge
@@ -142,14 +152,14 @@ export function PostEditor({ categories, tags, userId, post }: PostEditorProps) 
 
       <Card>
         <CardHeader>
-          <CardTitle>内容</CardTitle>
+          <CardTitle>{dict.editor.content}</CardTitle>
         </CardHeader>
                   <CardContent>
             <Tabs defaultValue="write" className="w-full">
               <TabsList className="grid w-full grid-cols-3">
-                <TabsTrigger value="write">写作</TabsTrigger>
-                <TabsTrigger value="upload">上传图片</TabsTrigger>
-                <TabsTrigger value="gallery">图片库</TabsTrigger>
+                <TabsTrigger value="write">{dict.tabs.write}</TabsTrigger>
+                <TabsTrigger value="upload">{dict.tabs.upload}</TabsTrigger>
+                <TabsTrigger value="gallery">{dict.tabs.gallery}</TabsTrigger>
               </TabsList>
               
               <TabsContent value="write" className="space-y-4">
@@ -167,7 +177,7 @@ export function PostEditor({ categories, tags, userId, post }: PostEditorProps) 
                 <ImageUploader 
                   onImageUploaded={(imageUrl) => {
                     // 在光标位置插入Markdown图片语法
-                    const imageMarkdown = `![图片](${imageUrl})\n`
+                    const imageMarkdown = `![${dict.imageGallery.image}](${imageUrl})\n`
                     
                     // 获取编辑器实例，尝试在光标位置插入图片
                     const textArea = document.querySelector('.w-md-editor-text-input') as HTMLTextAreaElement
@@ -210,7 +220,7 @@ export function PostEditor({ categories, tags, userId, post }: PostEditorProps) 
                   showSelectButton={true}
                   onImageSelect={(imageUrl) => {
                     // 插入选中的图片
-                    const imageMarkdown = `![图片](${imageUrl})\n`
+                    const imageMarkdown = `![${dict.imageGallery.image}](${imageUrl})\n`
                     setFormData((prev) => ({
                       ...prev,
                       content: prev.content ? prev.content + imageMarkdown : imageMarkdown
@@ -231,11 +241,11 @@ export function PostEditor({ categories, tags, userId, post }: PostEditorProps) 
       <div className="flex gap-4">
         <Button onClick={() => handleSave("draft")} disabled={isLoading} variant="outline">
           <Save className="h-4 w-4 mr-2" />
-          保存草稿
+          {dict.editor.saveDraft}
         </Button>
         <Button onClick={() => handleSave("published")} disabled={isLoading}>
           <Eye className="h-4 w-4 mr-2" />
-          发布文章
+          {dict.editor.publish}
         </Button>
       </div>
     </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Check, X, Calendar, ExternalLink } from "lucide-react"
 import { updateCommentStatus } from "@/lib/comment-actions"
 import Link from "next/link"
+import { useI18n } from "@/lib/i18n/context"
+import { getDictionary } from "@/lib/i18n/dictionaries"
 
 interface CommentManagementProps {
   comments: any[]
@@ -16,13 +18,21 @@ interface CommentManagementProps {
 
 export function CommentManagement({ comments }: CommentManagementProps) {
   const [loadingStates, setLoadingStates] = useState<Record<string, boolean>>({})
+  const [dict, setDict] = useState<any>(null)
+  const { locale } = useI18n()
+
+  useEffect(() => {
+    getDictionary(locale).then(setDict)
+  }, [locale])
+
+  if (!dict) return null
 
   const handleStatusUpdate = async (commentId: string, status: "approved" | "rejected") => {
     setLoadingStates((prev) => ({ ...prev, [commentId]: true }))
     try {
       await updateCommentStatus(commentId, status)
     } catch (error) {
-      alert("操作失败，请重试")
+      alert(dict.comments.operationFailed)
     } finally {
       setLoadingStates((prev) => ({ ...prev, [commentId]: false }))
     }
@@ -33,7 +43,7 @@ export function CommentManagement({ comments }: CommentManagementProps) {
   const rejectedComments = comments.filter((c) => c.status === "rejected")
 
   const CommentCard = ({ comment }: { comment: any }) => {
-    const authorName = comment.author?.full_name || comment.author?.username || "匿名用户"
+    const authorName = comment.author?.full_name || comment.author?.username || dict.comments.anonymousUser
     const isLoading = loadingStates[comment.id]
 
     return (
@@ -58,12 +68,12 @@ export function CommentManagement({ comments }: CommentManagementProps) {
                           : "destructive"
                     }
                   >
-                    {comment.status === "approved" ? "已通过" : comment.status === "pending" ? "待审核" : "已拒绝"}
+                    {comment.status === "approved" ? dict.comments.approved : comment.status === "pending" ? dict.comments.pending : dict.comments.rejected}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Calendar className="h-3 w-3" />
-                  {new Date(comment.created_at).toLocaleDateString("zh-CN")}
+                  {new Date(comment.created_at).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}
                 </div>
               </div>
 
@@ -73,7 +83,7 @@ export function CommentManagement({ comments }: CommentManagementProps) {
 
               <div className="flex items-center justify-between pt-2">
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <span>文章：</span>
+                  <span>{dict.comments.post}：</span>
                   <Link
                     href={`/posts/${comment.post.slug}`}
                     className="text-primary hover:underline flex items-center gap-1"
@@ -93,7 +103,7 @@ export function CommentManagement({ comments }: CommentManagementProps) {
                         disabled={isLoading}
                       >
                         <Check className="h-3 w-3 mr-1" />
-                        通过
+                        {dict.comments.approve}
                       </Button>
                       <Button
                         size="sm"
@@ -102,7 +112,7 @@ export function CommentManagement({ comments }: CommentManagementProps) {
                         disabled={isLoading}
                       >
                         <X className="h-3 w-3 mr-1" />
-                        拒绝
+                        {dict.comments.reject}
                       </Button>
                     </>
                   )}
@@ -114,7 +124,7 @@ export function CommentManagement({ comments }: CommentManagementProps) {
                       disabled={isLoading}
                     >
                       <Check className="h-3 w-3 mr-1" />
-                      恢复
+                      {dict.comments.restore}
                     </Button>
                   )}
                 </div>
@@ -129,17 +139,17 @@ export function CommentManagement({ comments }: CommentManagementProps) {
   return (
     <Tabs defaultValue="all" className="space-y-6">
       <TabsList>
-        <TabsTrigger value="all">全部 ({comments.length})</TabsTrigger>
-        <TabsTrigger value="pending">待审核 ({pendingComments.length})</TabsTrigger>
-        <TabsTrigger value="approved">已通过 ({approvedComments.length})</TabsTrigger>
-        <TabsTrigger value="rejected">已拒绝 ({rejectedComments.length})</TabsTrigger>
+        <TabsTrigger value="all">{dict.comments.all} ({comments.length})</TabsTrigger>
+        <TabsTrigger value="pending">{dict.comments.pending} ({pendingComments.length})</TabsTrigger>
+        <TabsTrigger value="approved">{dict.comments.approved} ({approvedComments.length})</TabsTrigger>
+        <TabsTrigger value="rejected">{dict.comments.rejected} ({rejectedComments.length})</TabsTrigger>
       </TabsList>
 
       <TabsContent value="all" className="space-y-4">
         {comments.length === 0 ? (
           <Card>
             <CardContent className="pt-6 text-center">
-              <p className="text-muted-foreground">还没有评论</p>
+              <p className="text-muted-foreground">{dict.comments.noComments}</p>
             </CardContent>
           </Card>
         ) : (
@@ -151,7 +161,7 @@ export function CommentManagement({ comments }: CommentManagementProps) {
         {pendingComments.length === 0 ? (
           <Card>
             <CardContent className="pt-6 text-center">
-              <p className="text-muted-foreground">没有待审核的评论</p>
+              <p className="text-muted-foreground">{dict.comments.noPendingComments}</p>
             </CardContent>
           </Card>
         ) : (
@@ -163,7 +173,7 @@ export function CommentManagement({ comments }: CommentManagementProps) {
         {approvedComments.length === 0 ? (
           <Card>
             <CardContent className="pt-6 text-center">
-              <p className="text-muted-foreground">没有已通过的评论</p>
+              <p className="text-muted-foreground">{dict.comments.noApprovedComments}</p>
             </CardContent>
           </Card>
         ) : (
@@ -175,7 +185,7 @@ export function CommentManagement({ comments }: CommentManagementProps) {
         {rejectedComments.length === 0 ? (
           <Card>
             <CardContent className="pt-6 text-center">
-              <p className="text-muted-foreground">没有已拒绝的评论</p>
+              <p className="text-muted-foreground">{dict.comments.noRejectedComments}</p>
             </CardContent>
           </Card>
         ) : (

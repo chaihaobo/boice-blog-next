@@ -4,6 +4,8 @@ import { useState, useRef, useCallback, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Upload, Image as ImageIcon } from 'lucide-react'
 import { uploadImage, extractImagesFromClipboard } from '@/lib/image-upload'
+import { useI18n } from '@/lib/i18n/context'
+import { getDictionary } from '@/lib/i18n/dictionaries'
 
 interface ImageUploaderProps {
   onImageUploaded: (imageUrl: string) => void
@@ -12,8 +14,14 @@ interface ImageUploaderProps {
 export function ImageUploader({ onImageUploaded }: ImageUploaderProps) {
   const [isUploading, setIsUploading] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [dict, setDict] = useState<any>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
   const dropZoneRef = useRef<HTMLDivElement>(null)
+  const { locale } = useI18n()
+
+  useEffect(() => {
+    getDictionary(locale).then(setDict)
+  }, [locale])
   
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -72,7 +80,7 @@ export function ImageUploader({ onImageUploaded }: ImageUploaderProps) {
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span>正在上传图片...</span>
+        <span>` + (dict?.images?.uploading || 'Uploading image...') + `</span>
       `
       document.body.appendChild(toast)
       
@@ -85,7 +93,7 @@ export function ImageUploader({ onImageUploaded }: ImageUploaderProps) {
         <svg class="-ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
         </svg>
-        <span>图片上传成功</span>
+        <span>` + (dict?.images?.uploadSuccess || 'Image uploaded successfully') + `</span>
       `
       
       // 2秒后移除提示
@@ -94,7 +102,7 @@ export function ImageUploader({ onImageUploaded }: ImageUploaderProps) {
       }, 2000)
     } catch (error) {
       console.error('Error uploading image:', error)
-      alert('图片上传失败，请重试')
+      alert(dict?.images?.uploadFailed || 'Image upload failed, please try again')
     } finally {
       setIsUploading(false)
     }
@@ -137,7 +145,7 @@ export function ImageUploader({ onImageUploaded }: ImageUploaderProps) {
             disabled={isUploading}
           >
             <Upload className="h-4 w-4 mr-2" />
-            {isUploading ? '上传中...' : '上传图片'}
+            {isUploading ? (dict?.images?.uploading || 'Uploading...') : (dict?.images?.uploadImage || 'Upload Image')}
           </Button>
           <input
             type="file"
@@ -149,7 +157,7 @@ export function ImageUploader({ onImageUploaded }: ImageUploaderProps) {
         </div>
         <p className="text-sm text-muted-foreground">
           <ImageIcon className="h-3 w-3 inline-block mr-1" />
-          {isDragging ? '释放鼠标上传图片' : '拖放图片到此处或粘贴图片'}
+          {isDragging ? (dict?.images?.dropToUpload || 'Drop to upload image') : (dict?.images?.dragDropOrPaste || 'Drag and drop image here or paste image')}
         </p>
       </div>
     </div>

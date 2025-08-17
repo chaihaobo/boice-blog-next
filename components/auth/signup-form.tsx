@@ -1,6 +1,6 @@
 "use client"
 
-import { useActionState } from "react"
+import { useActionState, useState, useEffect } from "react"
 import { useFormStatus } from "react-dom"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,8 +10,10 @@ import { Separator } from "@/components/ui/separator"
 import { Loader2, Github } from "lucide-react"
 import Link from "next/link"
 import { signUp, signInWithGitHub } from "@/lib/actions"
+import { useI18n } from "@/lib/i18n/context"
+import { getDictionary } from "@/lib/i18n/dictionaries"
 
-function SubmitButton() {
+function SubmitButton({ dict }: { dict: any }) {
   const { pending } = useFormStatus()
 
   return (
@@ -19,10 +21,10 @@ function SubmitButton() {
       {pending ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          注册中...
+          {dict.auth.signingUp}
         </>
       ) : (
-        "注册"
+        dict.auth.signUp
       )}
     </Button>
   )
@@ -30,19 +32,27 @@ function SubmitButton() {
 
 export function SignUpForm() {
   const [state, formAction] = useActionState(signUp, null)
+  const [dict, setDict] = useState<any>(null)
+  const { locale } = useI18n()
+
+  useEffect(() => {
+    getDictionary(locale).then(setDict)
+  }, [locale])
+
+  if (!dict) return null
 
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="space-y-1">
-        <CardTitle className="text-2xl font-bold text-center">创建账户</CardTitle>
-        <CardDescription className="text-center">注册开始使用</CardDescription>
+        <CardTitle className="text-2xl font-bold text-center">{dict.auth.createAccount}</CardTitle>
+        <CardDescription className="text-center">{dict.auth.signUpToStart}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* GitHub Login */}
         <form action={signInWithGitHub}>
           <Button type="submit" variant="outline" className="w-full bg-transparent">
             <Github className="mr-2 h-4 w-4" />
-            使用 GitHub 注册
+            {dict.auth.signUpWithGitHub}
           </Button>
         </form>
 
@@ -51,7 +61,7 @@ export function SignUpForm() {
             <Separator className="w-full" />
           </div>
           <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-background px-2 text-muted-foreground">或者</span>
+            <span className="bg-background px-2 text-muted-foreground">{dict.common.or}</span>
           </div>
         </div>
 
@@ -70,27 +80,27 @@ export function SignUpForm() {
           )}
 
           <div className="space-y-2">
-            <Label htmlFor="fullName">姓名</Label>
-            <Input id="fullName" name="fullName" type="text" placeholder="您的姓名" />
+            <Label htmlFor="fullName">{dict.auth.fullName}</Label>
+            <Input id="fullName" name="fullName" type="text" placeholder={dict.auth.fullNamePlaceholder} />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="email">邮箱</Label>
+            <Label htmlFor="email">{dict.auth.email}</Label>
             <Input id="email" name="email" type="email" placeholder="your@example.com" required />
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="password">密码</Label>
+            <Label htmlFor="password">{dict.auth.password}</Label>
             <Input id="password" name="password" type="password" required />
           </div>
 
-          <SubmitButton />
+          <SubmitButton dict={dict} />
         </form>
 
         <div className="text-center text-sm text-muted-foreground">
-          已有账户？{" "}
+          {dict.auth.alreadyHaveAccount}{" "}
           <Link href="/auth/login" className="text-primary hover:underline">
-            立即登录
+            {dict.auth.loginNow}
           </Link>
         </div>
       </CardContent>

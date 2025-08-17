@@ -5,8 +5,14 @@ import { getSystemSettings } from '@/lib/database'
 import type { SystemSetting } from '@/lib/types'
 import { Header } from '@/components/header'
 import { createClient } from '@/lib/supabase/server'
+import { getDictionary } from '@/lib/i18n/dictionaries'
 
-export default async function AboutPage() {
+export default async function AboutPage({
+  params: { locale = 'zh' }
+}: {
+  params: { locale?: 'zh' | 'en' }
+}) {
+  const dict = await getDictionary(locale)
   // 获取用户信息用于Header
   const supabase = await createClient()
   const { data: { user } } = await supabase.auth.getUser()
@@ -51,10 +57,10 @@ export default async function AboutPage() {
               <User className="h-12 w-12 text-white" />
             </div>
             <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
-              {settingsObj.about_title || '关于我'}
+              {settingsObj.about_title || dict?.about?.title}
             </h1>
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-              {settingsObj.about_intro || '暂无个人简介'}
+              {settingsObj.about_intro || dict?.about?.noIntro}
             </p>
           </div>
         </div>
@@ -73,7 +79,7 @@ export default async function AboutPage() {
                     <div className="p-2 rounded-lg bg-gradient-to-r from-blue-500 to-cyan-500">
                       <Code className="h-6 w-6 text-white" />
                     </div>
-                    技能专长
+                    {dict?.about?.skills}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -101,7 +107,7 @@ export default async function AboutPage() {
                     <div className="p-2 rounded-lg bg-gradient-to-r from-green-500 to-emerald-500">
                       <Briefcase className="h-6 w-6 text-white" />
                     </div>
-                    工作经验
+                    {dict?.about?.experience}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -124,7 +130,7 @@ export default async function AboutPage() {
                   <div className="p-2 rounded-lg bg-gradient-to-r from-purple-500 to-pink-500">
                     <Mail className="h-6 w-6 text-white" />
                   </div>
-                  联系方式
+                  {dict?.about?.contact}
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
@@ -142,7 +148,7 @@ export default async function AboutPage() {
                         <Mail className="h-4 w-4 text-white" />
                       </div>
                       <div className="flex-1">
-                        <p className="text-sm text-muted-foreground mb-1">邮箱地址</p>
+                        <p className="text-sm text-muted-foreground mb-1">{dict?.about?.emailAddress}</p>
                         <a 
                           href={`mailto:${settingsObj.about_email}`}
                           className="text-primary hover:text-primary/80 font-medium transition-colors group-hover/email:underline"
@@ -159,24 +165,24 @@ export default async function AboutPage() {
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-green-500/10 to-emerald-500/10">
                     <Award className="h-5 w-5 text-green-600" />
                     <div>
-                      <p className="text-sm font-medium">专业认证</p>
-                      <p className="text-xs text-muted-foreground">全栈工程师</p>
+                      <p className="text-sm font-medium">{dict?.about?.certification}</p>
+                      <p className="text-xs text-muted-foreground">{dict?.about?.fullStackEngineer}</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-blue-500/10 to-cyan-500/10">
                     <MapPin className="h-5 w-5 text-blue-600" />
                     <div>
-                      <p className="text-sm font-medium">工作地点</p>
-                      <p className="text-xs text-muted-foreground">远程办公</p>
+                      <p className="text-sm font-medium">{dict?.about?.location}</p>
+                      <p className="text-xs text-muted-foreground">{dict?.about?.remote}</p>
                     </div>
                   </div>
                   
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-gradient-to-r from-purple-500/10 to-pink-500/10">
                     <Calendar className="h-5 w-5 text-purple-600" />
                     <div>
-                      <p className="text-sm font-medium">工作状态</p>
-                      <p className="text-xs text-muted-foreground">开放合作</p>
+                      <p className="text-sm font-medium">{dict?.about?.workStatus}</p>
+                      <p className="text-xs text-muted-foreground">{dict?.about?.openToCollaboration}</p>
                     </div>
                   </div>
                 </div>

@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
@@ -8,6 +8,8 @@ import { Reply, Trash2, Calendar } from "lucide-react"
 import { CommentForm } from "./comment-form"
 import { deleteComment } from "@/lib/comment-actions"
 import type { Comment } from "@/lib/types"
+import { useI18n } from "@/lib/i18n/context"
+import { getDictionary } from "@/lib/i18n/dictionaries"
 
 interface CommentItemProps {
   comment: Comment
@@ -20,11 +22,19 @@ interface CommentItemProps {
 }
 
 export function CommentItem({ comment, postId, user, isReply = false }: CommentItemProps) {
+  const { locale } = useI18n()
+  const [dict, setDict] = useState<any>(null)
   const [showReplyForm, setShowReplyForm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  useEffect(() => {
+    getDictionary(locale).then(setDict)
+  }, [locale])
+
+  if (!dict) return null
+
   const handleDelete = async () => {
-    if (!confirm("确定要删除这条评论吗？")) {
+    if (!confirm(dict.comments.confirmDelete)) {
       return
     }
 
@@ -32,13 +42,13 @@ export function CommentItem({ comment, postId, user, isReply = false }: CommentI
     try {
       await deleteComment(comment.id)
     } catch (error) {
-      alert("删除失败，请重试")
+      alert(dict.comments.deleteError)
     } finally {
       setIsDeleting(false)
     }
   }
 
-  const authorName = comment.author?.full_name || comment.author?.username || "匿名用户"
+  const authorName = comment.author?.full_name || comment.author?.username || dict.comments.anonymous
   const isOwner = user?.id === comment.author_id
 
   return (
@@ -79,7 +89,7 @@ export function CommentItem({ comment, postId, user, isReply = false }: CommentI
                     className="h-8 px-2"
                   >
                     <Reply className="h-3 w-3 mr-1" />
-                    回复
+                    {dict.comments.reply}
                   </Button>
                 )}
 
@@ -92,7 +102,7 @@ export function CommentItem({ comment, postId, user, isReply = false }: CommentI
                     className="h-8 px-2 text-destructive hover:text-destructive"
                   >
                     <Trash2 className="h-3 w-3 mr-1" />
-                    {isDeleting ? "删除中..." : "删除"}
+                    {isDeleting ? dict.comments.deleting : dict.comments.delete}
                   </Button>
                 )}
               </div>
@@ -108,7 +118,7 @@ export function CommentItem({ comment, postId, user, isReply = false }: CommentI
             postId={postId}
             parentId={comment.id}
             onCancel={() => setShowReplyForm(false)}
-            placeholder={`回复 ${authorName}...`}
+            placeholder={`${dict.comments.replyTo} ${authorName}...`}
           />
         </div>
       )}

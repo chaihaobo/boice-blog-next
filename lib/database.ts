@@ -59,7 +59,7 @@ export async function getPosts({
 
   const postsWithRelations = await Promise.all(
     posts.map(async (post) => {
-      const [authorData, categoryData, tagsData] = await Promise.all([
+      const [authorData, categoryData, tagsData, commentsCount] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", post.author_id).single(),
         post.category_id
           ? supabase.from("categories").select("*").eq("id", post.category_id).single()
@@ -75,13 +75,19 @@ export async function getPosts({
             )
           `)
           .eq("post_id", post.id),
+        supabase
+          .from("comments")
+          .select("id", { count: "exact" })
+          .eq("post_id", post.id)
+          .eq("status", "approved"),
       ])
 
       return {
         ...post,
-        profiles: authorData.data,
-        categories: categoryData.data,
-        post_tags: tagsData.data || [],
+        author: authorData.data,
+        category: categoryData.data,
+        tags: tagsData.data?.map((item: any) => item.tags).filter(Boolean) || [],
+        comments_count: commentsCount.count || 0,
       }
     }),
   )
@@ -186,7 +192,7 @@ export async function getComments(postSlug: string) {
 
       return {
         ...comment,
-        profiles: authorData,
+        author: authorData,
       }
     }),
   )
@@ -207,7 +213,7 @@ export async function getComments(postSlug: string) {
 
           return {
             ...reply,
-            profiles: authorData,
+            author: authorData,
           }
         }),
       )

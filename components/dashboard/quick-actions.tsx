@@ -2,30 +2,33 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import Link from "next/link"
 import { PenTool, Settings, BarChart3, Users } from "lucide-react"
+import { getDictionary } from "@/lib/i18n/dictionaries"
+import type { Locale } from "@/lib/i18n/config"
 
-export function QuickActions() {
+export async function QuickActions({ locale }: { locale: Locale }) {
+  const dict = await getDictionary(locale)
   const actions = [
     {
-      title: "写新文章",
-      description: "创建新的博客文章",
+      title: dict.dashboard.writeNewPost,
+      description: dict.dashboard.createNewPost,
       href: "/dashboard/posts/new",
       icon: PenTool,
     },
     {
-      title: "查看统计",
-      description: "查看博客数据统计",
+      title: dict.dashboard.viewStats,
+      description: dict.dashboard.viewBlogStats,
       href: "/dashboard/analytics",
       icon: BarChart3,
     },
     {
-      title: "管理评论",
-      description: "审核和管理评论",
+      title: dict.dashboard.manageComments,
+      description: dict.dashboard.reviewComments,
       href: "/dashboard/comments",
       icon: Users,
     },
     {
-      title: "设置",
-      description: "博客和账户设置",
+      title: dict.dashboard.settings,
+      description: dict.dashboard.blogSettings,
       href: "/dashboard/settings",
       icon: Settings,
     },
@@ -34,7 +37,7 @@ export function QuickActions() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>快速操作</CardTitle>
+        <CardTitle>{dict.dashboard.quickActions}</CardTitle>
       </CardHeader>
       <CardContent className="space-y-2">
         {actions.map((action) => (

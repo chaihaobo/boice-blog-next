@@ -7,9 +7,11 @@ import { Textarea } from "@/components/ui/textarea"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Loader2, Send } from "lucide-react"
 import { createComment } from "@/lib/comment-actions"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
+import { useI18n } from "@/lib/i18n/context"
+import { getDictionary } from "@/lib/i18n/dictionaries"
 
-function SubmitButton() {
+function SubmitButton({ dict }: { dict: any }) {
   const { pending } = useFormStatus()
 
   return (
@@ -17,12 +19,12 @@ function SubmitButton() {
       {pending ? (
         <>
           <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          提交中...
+          {dict.comments.submitting}
         </>
       ) : (
         <>
           <Send className="mr-2 h-4 w-4" />
-          发表评论
+          {dict.comments.submit}
         </>
       )}
     </Button>
@@ -36,9 +38,15 @@ interface CommentFormProps {
   placeholder?: string
 }
 
-export function CommentForm({ postId, parentId, onCancel, placeholder = "写下您的评论..." }: CommentFormProps) {
+export function CommentForm({ postId, parentId, onCancel, placeholder }: CommentFormProps) {
+  const { locale } = useI18n()
+  const [dict, setDict] = useState<any>(null)
   const [state, formAction] = useActionState(createComment, null)
   const formRef = useRef<HTMLFormElement>(null)
+
+  useEffect(() => {
+    getDictionary(locale).then(setDict)
+  }, [locale])
 
   useEffect(() => {
     if (state?.success) {
@@ -49,10 +57,14 @@ export function CommentForm({ postId, parentId, onCancel, placeholder = "写下�
     }
   }, [state, onCancel])
 
+  if (!dict) return null
+
+  const defaultPlaceholder = placeholder || dict.comments.placeholder
+
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-lg">{parentId ? "回复评论" : "发表评论"}</CardTitle>
+        <CardTitle className="text-lg">{parentId ? dict.comments.replyComment : dict.comments.postComment}</CardTitle>
       </CardHeader>
       <CardContent>
         <form ref={formRef} action={formAction} className="space-y-4">
@@ -71,13 +83,13 @@ export function CommentForm({ postId, parentId, onCancel, placeholder = "写下�
             </div>
           )}
 
-          <Textarea name="content" placeholder={placeholder} rows={4} required minLength={5} maxLength={1000} />
+          <Textarea name="content" placeholder={defaultPlaceholder} rows={4} required minLength={5} maxLength={1000} />
 
           <div className="flex items-center gap-2">
-            <SubmitButton />
+            <SubmitButton dict={dict} />
             {onCancel && (
               <Button type="button" variant="outline" size="sm" onClick={onCancel}>
-                取消
+                {dict.common.cancel}
               </Button>
             )}
           </div>

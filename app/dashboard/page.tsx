@@ -4,8 +4,14 @@ import { DashboardHeader } from "@/components/dashboard/dashboard-header"
 import { DashboardStats } from "@/components/dashboard/dashboard-stats"
 import { RecentPosts } from "@/components/dashboard/recent-posts"
 import { QuickActions } from "@/components/dashboard/quick-actions"
+import { getDictionary } from "@/lib/i18n/dictionaries"
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  params: { locale = 'zh' }
+}: {
+  params: { locale?: 'zh' | 'en' }
+}) {
+  const dict = await getDictionary(locale)
   const supabase = await createClient()
   const {
     data: { user },
@@ -32,23 +38,23 @@ export default async function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <DashboardHeader user={user} profile={profile} />
+      <DashboardHeader user={user} profile={profile} locale={locale} />
 
       <main className="container mx-auto px-4 py-8">
         <div className="space-y-8">
           <div>
-            <h1 className="text-3xl font-bold">仪表板</h1>
-            <p className="text-muted-foreground">管理您的博客内容</p>
+            <h1 className="text-3xl font-bold">{dict?.dashboard?.title}</h1>
+            <p className="text-muted-foreground">{dict?.dashboard?.manageBlog}</p>
           </div>
 
           <DashboardStats stats={stats} />
 
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2">
-              <RecentPosts userId={user.id} />
+              <RecentPosts userId={user.id} locale={locale} />
             </div>
             <div>
-              <QuickActions />
+              <QuickActions locale={locale} />
             </div>
           </div>
         </div>
